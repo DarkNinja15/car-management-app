@@ -1,14 +1,16 @@
 import express from 'express';
+import fileUpload from 'express-fileupload';
 import authRoutes from './routes/authRoute';
 import carRoutes from './routes/carRoute';
-import multer from 'multer';
 
 const app = express();
 app.use(express.json());
-
-const upload = multer({ dest: 'uploads/' });
+app.use(fileUpload({
+  useTempFiles: true,
+  tempFileDir: '/tmp/'
+}));
 
 app.use('/api/auth', authRoutes);
-app.use('/api/cars', upload.array('images', 10), carRoutes);
+app.use('/api/cars', carRoutes);
 
 export default app;

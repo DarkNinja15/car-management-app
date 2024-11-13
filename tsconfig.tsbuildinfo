@@ -1,1 +1,1 @@
-{"root":["./src/app.ts","./src/server.ts","./src/controllers/authController.ts","./src/controllers/carController.ts","./src/middlewares/authMiddleware.ts","./src/routes/authRoute.ts","./src/routes/carRoute.ts"],"version":"5.6.3"}
+{"root":["./src/app.ts","./src/server.ts","./src/config/cloudinaryConfig.ts","./src/controllers/authController.ts","./src/controllers/carController.ts","./src/middlewares/authMiddleware.ts","./src/routes/authRoute.ts","./src/routes/carRoute.ts"],"version":"5.6.3"}

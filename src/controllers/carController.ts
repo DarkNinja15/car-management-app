@@ -1,19 +1,73 @@
+
 import { PrismaClient } from '@prisma/client';
+import cloudinary from '../config/cloudinaryConfig';
+import { UploadedFile } from 'express-fileupload';
 
 const prisma = new PrismaClient();
 
 export const createCar = async (req: any, res: any) => {
     const { title, description, tags } = req.body;
-    const images = req.files.map((file: any) => file.path);
+    const userId = req.userId;
+    const files = req.files?.images;
 
     try {
+        // Upload images to Cloudinary
+        const imageUrls: string[] = [];
+        if (files) {
+            const images = Array.isArray(files) ? files : [files];
+            for (const file of images) {
+                const result = await cloudinary.uploader.upload((file as UploadedFile).tempFilePath);
+                imageUrls.push(result.secure_url);
+            }
+        }
+
         const car = await prisma.car.create({
-            data: { title, description, tags, images, userId: req.userId }
+            data: {
+                title,
+                description,
+                tags,
+                images: imageUrls,
+                userId
+            }
         });
+
         res.status(201).json(car);
-    } catch (err) {
-        console.log(err);
-        res.status(400).json({ error: 'Error creating car' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error creating car' });
+    }
+};
+
+export const updateCar = async (req: any, res: any) => {
+    const { title, description, tags } = req.body;
+    const carId = parseInt(req.params.id);
+    const files = req.files?.images;
+
+    try {
+        // Upload new images to Cloudinary if provided
+        const imageUrls: string[] = [];
+        if (files) {
+            const images = Array.isArray(files) ? files : [files];
+            for (const file of images) {
+                const result = await cloudinary.uploader.upload((file as UploadedFile).tempFilePath);
+                imageUrls.push(result.secure_url);
+            }
+        }
+
+        const car = await prisma.car.update({
+            where: { id: carId, userId: req.userId },
+            data: {
+                title,
+                description,
+                tags,
+                images: imageUrls.length > 0 ? imageUrls : undefined
+            }
+        });
+
+        res.json(car);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error updating car' });
     }
 };
 
@@ -29,17 +83,6 @@ export const getCar = async (req: any, res: any) => {
     } else {
         res.status(403).json({ message: 'Forbidden' });
     }
-};
-
-export const updateCar = async (req: any, res: any) => {
-    const { title, description, tags } = req.body;
-    const images = req.files?.map((file: any) => file.path);
-
-    const car = await prisma.car.update({
-        where: { id: parseInt(req.params.id), userId: req.userId },
-        data: { title, description, tags, images }
-    });
-    res.json(car);
 };
 
 export const deleteCar = async (req: any, res: any) => {
