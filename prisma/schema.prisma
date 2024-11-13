@@ -12,3 +12,22 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  cars      Car[]
+}
+
+model Car {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  images      String[] @db.VarChar(255) // Stores image URLs as strings
+  tags        Json     // Stores tags as JSON for flexibility
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([title, description], name: "search_index")
+}
